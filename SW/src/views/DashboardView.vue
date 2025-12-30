@@ -5,7 +5,8 @@ import { useTaskStore, type Task, type Engineer } from '../store';
 import Header from '../components/Header.vue';
 import EngineerList from '../components/EngineerList.vue';
 import TaskBoard from '../components/TaskBoard.vue';
-import { ClipboardList, MapPin, Check, FileText } from 'lucide-vue-next';
+// 加入 PanelLeftClose, PanelLeftOpen 用於側邊欄切換
+import { ClipboardList, MapPin, Check, FileText, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next';
 
 const router = useRouter();
 const store = useTaskStore();
@@ -14,7 +15,7 @@ const store = useTaskStore();
 const adminTab = ref('active'); // active | completed
 const engineerTab = ref('current'); // current | history
 
-// 側邊欄控制
+// 側邊欄控制 (預設顯示)
 const showSidebar = ref(true);
 
 // 檢查是否已登入
@@ -80,7 +81,7 @@ const handleAssign = (task: Task, eng: Engineer) => {
   task.engineerId = eng.id; 
   task.status = 'In Progress';
   
-  // 更新工程師狀態 (支援多工：直接設為忙碌，並更新當前任務ID作為參考)
+  // 更新工程師狀態
   const e = store.engineers.find(e => e.id === eng.id);
   if (e) { 
     e.status = 'Busy'; 
@@ -104,7 +105,6 @@ const handleUnassign = (task: Task) => {
         e.status = 'Idle';
         e.currentTaskId = undefined;
       } else {
-        // 如果還有其他任務，將 currentTaskId 指向其中一個 (UI顯示用)
         const other = store.tasks.find(t => t.engineerId === e.id && t.status === 'In Progress');
         if (other) e.currentTaskId = other.id;
       }
@@ -114,7 +114,7 @@ const handleUnassign = (task: Task) => {
 
 const handleAction = (task: Task) => {
   if (store.currentUser?.role === 'admin') {
-    // 管理員核准：手動處理以支援多工判斷
+    // 管理員核准
     task.status = 'Completed';
     
     // 檢查該工程師是否還有其他任務
@@ -126,7 +126,6 @@ const handleAction = (task: Task) => {
           e.status = 'Idle';
           e.currentTaskId = undefined;
         } else {
-          // 若還有任務，保持 Busy
           const other = store.tasks.find(t => t.engineerId === e.id && t.status === 'In Progress');
           if (other) e.currentTaskId = other.id;
         }
@@ -156,7 +155,7 @@ const handleAction = (task: Task) => {
         <!-- Admin Tabs & Toggle Button -->
         <div class="bg-white border-b flex-shrink-0 d-flex align-center px-4 py-2">
           
-          <!-- 側邊欄切換按鈕 (更換為 outlined 樣式與通用圖示) -->
+          <!-- 側邊欄切換按鈕 (已優化：使用 Lucide 圖示) -->
           <v-btn 
             variant="outlined" 
             size="small" 
@@ -164,7 +163,11 @@ const handleAction = (task: Task) => {
             class="mr-3"
             @click="showSidebar = !showSidebar"
           >
-            <v-icon start :icon="showSidebar ? 'fa-solid fa-chevron-left' : 'fa-solid fa-list'"></v-icon>
+            <!-- 使用 template v-slot:prepend 放置圖示 -->
+            <template v-slot:prepend>
+                <PanelLeftClose v-if="showSidebar" :size="16" />
+                <PanelLeftOpen v-else :size="16" />
+            </template>
             {{ showSidebar ? '隱藏列表' : '顯示列表' }}
           </v-btn>
 
@@ -180,7 +183,8 @@ const handleAction = (task: Task) => {
         <div v-if="adminTab === 'active'" class="flex-grow-1 overflow-hidden">
             <v-row no-gutters class="fill-height flex-nowrap">
               
-              <!-- Left Sidebar: Engineer List (可隱藏 - 使用 CSS width transition) -->
+              <!-- Left Sidebar: Engineer List -->
+              <!-- 使用 transition-width 類別與動態 width/opacity 實現滑動效果 -->
               <div 
                 class="flex-shrink-0 border-e d-flex flex-column bg-white h-100 transition-width"
                 :style="{ width: showSidebar ? '260px' : '0px', opacity: showSidebar ? 1 : 0 }"
@@ -195,7 +199,7 @@ const handleAction = (task: Task) => {
               <!-- Right Area: Pending Approval + Task Board -->
               <v-col class="flex-grow-1 overflow-hidden bg-white h-100" style="min-width: 0;">
                 
-                <!-- 動態置中容器：當側邊欄隱藏時，限制最大寬度並置中 -->
+                <!-- 動態置中容器 -->
                 <div class="d-flex flex-column h-100 w-100 transition-all" 
                      :class="{'mx-auto': !showSidebar}" 
                      :style="!showSidebar ? 'max-width: 1400px;' : 'width: 100%;'">
@@ -320,7 +324,7 @@ const handleAction = (task: Task) => {
             <v-window v-model="engineerTab">
               <v-window-item value="current">
                 
-                <!-- 區塊 1: 待核准 (Pending Approval) - 獨立顯示 -->
+                <!-- 區塊 1: 待核准 (Pending Approval) -->
                 <div v-if="myPendingApprovalTasks.length > 0" class="mb-8">
                   <div class="d-flex align-center text-subtitle-1 font-weight-bold text-warning mb-3">
                     <v-icon icon="fa-solid fa-hourglass-half" class="mr-2"></v-icon>
@@ -337,7 +341,7 @@ const handleAction = (task: Task) => {
                               <v-chip size="small" color="warning" label>待簽核</v-chip>
                             </div>
                             <div class="d-flex align-center text-body-2 text-grey-darken-2 mb-2">
-                              <MapPin size="16" class="mr-2" /> {{ task.location }}
+                              <MapPin :size="16" class="mr-2" /> {{ task.location }}
                             </div>
                             <div class="text-caption text-grey-darken-1">
                               已提交，請等待管理員確認結案。
@@ -381,14 +385,14 @@ const handleAction = (task: Task) => {
                               </v-chip>
                             </div>
                             <div class="d-flex align-center text-body-2 text-grey-darken-1 mb-4">
-                              <MapPin size="16" class="mr-2" /> {{ task.location }}
+                              <MapPin :size="16" class="mr-2" /> {{ task.location }}
                             </div>
                             <div class="d-flex align-center gap-3">
                               <v-btn variant="outlined" color="primary" size="small" @click="router.push(`/task/${task.id}`)">
-                                <template v-slot:prepend><FileText size="16" /></template> 查看
+                                <template v-slot:prepend><FileText :size="16" /></template> 查看
                               </v-btn>
                               <v-btn color="success" variant="flat" size="small" @click="handleAction(task)">
-                                <template v-slot:prepend><Check size="16" /></template> 完成 (送審)
+                                <template v-slot:prepend><Check :size="16" /></template> 完成 (送審)
                               </v-btn>
                             </div>
                           </div>
@@ -425,9 +429,9 @@ const handleAction = (task: Task) => {
                       </div>
                       <v-divider></v-divider>
                       <div class="pa-2 text-right">
-                         <v-btn size="small" variant="text" color="grey" @click="router.push(`/task/${task.id}`)">
+                          <v-btn size="small" variant="text" color="grey" @click="router.push(`/task/${task.id}`)">
                            回顧詳情
-                         </v-btn>
+                          </v-btn>
                       </div>
                     </v-card>
                   </v-col>
