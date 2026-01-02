@@ -21,7 +21,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <v-app-bar elevation="1" color="surface" density="default" class="px-2">
+  <v-app-bar elevation="1" color="surface" density="default" class="px-2" >
     <!-- 左側：Logo -->
     <template v-slot:prepend>
       <div class="d-flex align-center mr-4">

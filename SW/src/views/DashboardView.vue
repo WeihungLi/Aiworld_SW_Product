@@ -162,16 +162,16 @@ const handleAction = (task: Task) => {
               </div>
 
               <!-- TaskBoard -->
-              <TaskBoard 
-                :unassigned-tasks="unassignedTasks" 
-                :active-tasks="adminInProgressTasks" 
-                :engineers="store.engineers"
-                @assign="handleAssign" 
-                @unassign="handleUnassign" 
-                @complete="handleAction" 
-                @view="(t) => router.push(`/task/${t.id}`)" 
-                class="w-100 h-100"
-              />
+                <TaskBoard 
+                    :unassigned-tasks="unassignedTasks" 
+                    :active-tasks="adminInProgressTasks" 
+                    :engineers="store.engineers"
+                    @assign="handleAssign" 
+                    @unassign="handleUnassign" 
+                    @complete="handleAction" 
+                    @view="(t) => router.push(`/task/${t.id}`)" 
+                    class="w-100 h-100"
+                />
             </div>
 
             <!-- Drawer (Engineer List) -->
@@ -256,9 +256,8 @@ const handleAction = (task: Task) => {
                             <div class="text-h6">{{ task.title }}</div>
                             <v-chip color="error" size="small" variant="flat">{{ task.priority }}</v-chip>
                           </div>
-                          <div class="d-flex gap-2 mt-4">
-                            <v-btn block color="primary" variant="outlined" @click="router.push(`/task/${task.id}`)">查看</v-btn>
-                            <v-btn block color="success" @click="handleAction(task)">完成</v-btn>
+                          <div class="d-flex flex-column mt-4">
+                            <v-btn width="2" block color="primary" variant="outlined" @click="router.push(`/task/${task.id}`)">查看</v-btn>
                           </div>
                        </v-card-text>
                     </v-card>

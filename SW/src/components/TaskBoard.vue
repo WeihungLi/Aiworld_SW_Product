@@ -16,8 +16,8 @@ const getPriorityColor = (p: Priority) => {
 </script>
 
 <template>
-  <v-main class="bg-grey-lighten-4 h-100">
-    <v-container fluid class="h-100 pa-6 overflow-y-auto">
+  <v-main class="bg-grey-lighten-4 h-200 pa-1">
+    <v-container fluid class="h-100 d-flex flex-column">
       
       <!-- 待派工區 -->
       <div class="mb-8">
@@ -31,7 +31,7 @@ const getPriorityColor = (p: Priority) => {
           <v-col cols="12" md="6" lg="4" v-for="task in unassignedTasks" :key="task.id">
             <v-card elevation="0" border hover @click="emit('view', task)">
               <v-card-text>
-                <div class="d-flex justify-space-between align-start mb-2">
+                <div class="d-flex justify-space-between align-center mb-2 ">
                   <v-chip size="x-small" :color="getPriorityColor(task.priority)" variant="outlined" label>
                     {{ task.priority }}
                   </v-chip>
@@ -52,7 +52,7 @@ const getPriorityColor = (p: Priority) => {
                 <div class="text-caption text-grey mb-2">指派給:</div>
                 <div class="d-flex flex-wrap gap-2">
                   <v-chip 
-                    v-for="eng in engineers.filter(e => e.status === 'Idle')" 
+                    v-for="eng in engineers.filter(e => e.status !== 'Offline')" 
                     :key="eng.id"
                     size="small"
                     pill
@@ -65,7 +65,7 @@ const getPriorityColor = (p: Priority) => {
                     {{ eng.name }}
                   </v-chip>
 
-                  <div v-if="!engineers.some(e => e.status === 'Idle')" class="text-caption text-error">
+                  <div v-if="!engineers.some(e => e.status !== 'Offline')" class="text-caption text-error">
                     目前無空閒工程師
                   </div>
                 </div>
@@ -82,7 +82,7 @@ const getPriorityColor = (p: Priority) => {
       </div>
 
       <!-- 進行中區 -->
-      <div>
+      <div class="mt-8">
         <div class="d-flex align-center mb-4">
           <Activity class="mr-2 text-primary" size="24" />
           <h2 class="text-h6 font-weight-bold text-grey-darken-3">進行中工單</h2>
@@ -110,10 +110,6 @@ const getPriorityColor = (p: Priority) => {
                 <div class="d-flex align-center gap-2">
                   <v-btn size="small" variant="text" color="grey" @click.stop="emit('unassign', task)">
                     取消
-                  </v-btn>
-                  <v-btn size="small" color="success" variant="flat" prepend-icon="" @click.stop="emit('complete', task)">
-                    <template v-slot:prepend><Check size="16" /></template>
-                    完成
                   </v-btn>
                 </div>
               </div>
